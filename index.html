@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XOR解密工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            position: relative;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+            position: relative;
+        }
+
+        .about-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .about-btn:hover {
+            background: #764ba2;
+        }
+
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .dialog-overlay.show {
+            display: flex;
+        }
+
+        .dialog {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .dialog h3 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .about-content p {
+            margin-bottom: 15px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .about-author {
+            font-weight: 600;
+            color: #667eea;
+            margin-top: 20px;
+        }
+
+        .about-links {
+            margin-top: 15px;
+        }
+
+        .about-link {
+            display: inline-block;
+            margin-right: 15px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .about-link:hover {
+            text-decoration: underline;
+        }
+
+        .dialog-actions {
+            margin-top: 25px;
+            text-align: right;
+        }
+
+        .dialog-actions button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 25px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .dialog-actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            min-height: 150px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .result-info {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .preview-area {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            max-height: 300px;
+            overflow: auto;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .preview-text {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .error {
+            color: #dc3545;
+            padding: 10px;
+            background: #f8d7da;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .success {
+            color: #28a745;
+            padding: 10px;
+            background: #d4edda;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .success.show {
+            display: block;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .tab-btn {
+            padding: 8px 16px;
+            background: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .file-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .input-row > div {
+            flex: 1;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>XOR解密工具<button class="about-btn" onclick="showAbout()">关于</button></h1>
+
+        <div class="section">
+            <div class="section-title">密钥设置</div>
+            <div class="input-row">
+                <div>
+                    <label for="key">解密密钥</label>
+                    <input type="text" id="key" value="G0G0Squ1d3Ncrypt10n" placeholder="输入解密密钥">
+                </div>
+                <div>
+                    <label for="key-type">密钥类型</label>
+                    <select id="key-type">
+                        <option value="text">Text (文本)</option>
+                        <option value="hex">Hex (十六进制)</option>
+                        <option value="binary">Binary (二进制)</option>
+                        <option value="decimal">Decimal (十进制)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">解密内容</div>
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('hex')">十六进制 (HEX)</button>
+                <button class="tab-btn" onclick="switchTab('plain')">Plain Text</button>
+                <button class="tab-btn" onclick="switchTab('base64')">Base64</button>
+                <button class="tab-btn" onclick="switchTab('binary')">Binary</button>
+                <button class="tab-btn" onclick="switchTab('file')">文件上传</button>
+            </div>
+
+            <div id="hex-tab" class="tab-content active">
+                <div class="form-group">
+                    <label for="hex-input">十六进制数据</label>
+                    <textarea id="hex-input" placeholder="输入十六进制编码的加密数据，例如：b8e8b8eb53327539..."></textarea>
+                </div>
+            </div>
+
+            <div id="plain-tab" class="tab-content">
+                <div class="form-group">
+                    <label for="plain-input">Plain Text 数据</label>
+                    <textarea id="plain-input" placeholder="输入纯文本格式的加密数据"></textarea>
+                </div>
+            </div>
+
+            <div id="base64-tab" class="tab-content">
+                <div class="form-group">
+                    <label for="base64-input">Base64 数据</label>
+                    <textarea id="base64-input" placeholder="输入Base64编码的加密数据"></textarea>
+                </div>
+            </div>
+
+            <div id="binary-tab" class="tab-content">
+                <div class="form-group">
+                    <label for="binary-input">Binary 数据</label>
+                    <textarea id="binary-input" placeholder="输入二进制字符串（如：01010110 10001110...）"></textarea>
+                </div>
+            </div>
+
+            <div id="file-tab" class="tab-content">
+                <div class="form-group">
+                    <label for="file-input">选择加密文件</label>
+                    <input type="file" id="file-input">
+                    <div id="file-info" class="file-info" style="display: none;"></div>
+                </div>
+                <div class="form-group">
+                    <label for="file-format">文件内容格式</label>
+                    <select id="file-format">
+                        <option value="binary">二进制文件 (直接读取)</option>
+                        <option value="hex">十六进制文本</option>
+                        <option value="plain">Plain Text</option>
+                        <option value="base64">Base64</option>
+                        <option value="binary-string">二进制字符串 (010101...)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn" onclick="decrypt()">解密</button>
+            <button class="btn" onclick="clearAll()">清空</button>
+        </div>
+
+        <div id="error" class="error"></div>
+        <div id="success" class="success"></div>
+
+        <div id="result-section" class="result-section">
+            <div class="result-header">
+                <h3>解密结果</h3>
+                <div class="result-info" id="result-info"></div>
+            </div>
+            <div class="btn-group">
+                <button class="btn" onclick="saveFile()">保存文件</button>
+            </div>
+            <div class="preview-area" id="preview-area"></div>
+        </div>
+    </div>
+
+    <div class="dialog-overlay" id="dialog-overlay">
+        <div class="dialog">
+            <h3>关于XOR解密工具</h3>
+            <div class="about-content">
+                <p>XOR解密工具是一个基于Web的轻量级解密工具，支持多种格式的XOR加密数据解密。</p>
+                <p>系统采用纯前端技术实现，数据完全在浏览器本地处理，无需服务器支持，安全快捷。</p>
+                <p class="about-author">作者：EchoOfCloud</p>
+                <div class="about-links">
+                    <a href="https://github.com/EchoOfCloud" target="_blank" class="about-link">GitHub地址</a>
+                    <a href="https://blog.csdn.net/qq_37400312" target="_blank" class="about-link">CSDN地址</a>
+                </div>
+            </div>
+            <div class="dialog-actions">
+                <button type="button" onclick="hideAbout()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let decryptedData = null;
+        let decryptedFilename = 'decrypted.bin';
+
+        function showAbout() {
+            document.getElementById('dialog-overlay').classList.add('show');
+        }
+
+        function hideAbout() {
+            document.getElementById('dialog-overlay').classList.remove('show');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            const tabs = ['hex', 'plain', 'base64', 'binary', 'file'];
+            const index = tabs.indexOf(tab);
+            document.querySelectorAll('.tab-btn')[index].classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            document.getElementById('success').classList.remove('show');
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.classList.add('show');
+            document.getElementById('error').classList.remove('show');
+        }
+
+        function hexToBytes(hexString) {
+            hexString = hexString.replace(/\s+/g, '');
+            if (hexString.length % 2 !== 0) {
+                throw new Error('十六进制字符串长度必须是偶数');
+            }
+            const bytes = new Uint8Array(hexString.length / 2);
+            for (let i = 0; i < hexString.length; i += 2) {
+                const byte = parseInt(hexString.substr(i, 2), 16);
+                if (isNaN(byte)) {
+                    throw new Error('无效的十六进制字符');
+                }
+                bytes[i / 2] = byte;
+            }
+            return bytes;
+        }
+
+        function plainTextToBytes(text) {
+            const encoder = new TextEncoder();
+            return encoder.encode(text);
+        }
+
+        function base64ToBytes(base64String) {
+            base64String = base64String.replace(/\s+/g, '');
+            const binaryString = atob(base64String);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes;
+        }
+
+        function binaryToBytes(binaryString) {
+            binaryString = binaryString.replace(/\s+/g, '');
+            if (binaryString.length % 8 !== 0) {
+                throw new Error('二进制字符串长度必须是8的倍数');
+            }
+            const bytes = new Uint8Array(binaryString.length / 8);
+            for (let i = 0; i < binaryString.length; i += 8) {
+                const byteStr = binaryString.substr(i, 8);
+                const byte = parseInt(byteStr, 2);
+                if (isNaN(byte)) {
+                    throw new Error('无效的二进制字符');
+                }
+                bytes[i / 8] = byte;
+            }
+            return bytes;
+        }
+
+        function keyToBytes(key, keyType) {
+            switch (keyType) {
+                case 'text':
+                    return new TextEncoder().encode(key);
+                case 'hex':
+                    return hexToBytes(key);
+                case 'binary':
+                    return binaryToBytes(key);
+                case 'decimal':
+                    const decimalValues = key.split(/[\s,]+/).filter(v => v.trim());
+                    const bytes = new Uint8Array(decimalValues.length);
+                    for (let i = 0; i < decimalValues.length; i++) {
+                        const value = parseInt(decimalValues[i], 10);
+                        if (isNaN(value) || value < 0 || value > 255) {
+                            throw new Error('无效的十进制值，必须是0-255之间的整数');
+                        }
+                        bytes[i] = value;
+                    }
+                    return bytes;
+                default:
+                    return new TextEncoder().encode(key);
+            }
+        }
+
+        function xorDecrypt(data, key, keyType) {
+            const result = new Uint8Array(data.length);
+            const keyBytes = keyToBytes(key, keyType);
+            
+            for (let i = 0; i < data.length; i++) {
+                result[i] = data[i] ^ keyBytes[i % keyBytes.length];
+            }
+            
+            return result;
+        }
+
+        function detectFileType(data) {
+            if (data.length < 4) {
+                const textDecoder = new TextDecoder('utf-8', { fatal: false });
+                try {
+                    const text = textDecoder.decode(data);
+                    if (/^[\x20-\x7E\r\n\t]*$/.test(text)) {
+                        return { type: 'text/plain', ext: 'txt' };
+                    }
+                } catch (e) {}
+                return { type: 'application/octet-stream', ext: 'bin' };
+            }
+            
+            const header = Array.from(data.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join('');
+            
+            if (header.startsWith('ffd8ff')) {
+                return { type: 'image/jpeg', ext: 'jpg' };
+            }
+            if (header.startsWith('89504e470d0a1a0a')) {
+                return { type: 'image/png', ext: 'png' };
+            }
+            if (header.startsWith('47494638')) {
+                return { type: 'image/gif', ext: 'gif' };
+            }
+            if (header.startsWith('25504446')) {
+                return { type: 'application/pdf', ext: 'pdf' };
+            }
+            if (header.startsWith('504b0304')) {
+                return { type: 'application/zip', ext: 'zip' };
+            }
+            if (header.startsWith('1f8b')) {
+                return { type: 'application/gzip', ext: 'gz' };
+            }
+            
+            const textDecoder = new TextDecoder('utf-8', { fatal: false });
+            try {
+                const text = textDecoder.decode(data.slice(0, Math.min(100, data.length)));
+                if (/^[\x20-\x7E\r\n\t]*$/.test(text)) {
+                    return { type: 'text/plain', ext: 'txt' };
+                }
+            } catch (e) {}
+            
+            return { type: 'application/octet-stream', ext: 'bin' };
+        }
+
+        function previewData(data, fileType) {
+            const previewArea = document.getElementById('preview-area');
+            previewArea.innerHTML = '';
+            
+            if (fileType.type.startsWith('image/')) {
+                const blob = new Blob([data], { type: fileType.type });
+                const url = URL.createObjectURL(blob);
+                const img = document.createElement('img');
+                img.className = 'preview-image';
+                img.src = url;
+                previewArea.appendChild(img);
+            } else if (fileType.type === 'text/plain') {
+                const textDecoder = new TextDecoder('utf-8');
+                const text = textDecoder.decode(data);
+                const pre = document.createElement('pre');
+                pre.className = 'preview-text';
+                pre.textContent = text.substring(0, 5000);
+                if (text.length > 5000) {
+                    pre.textContent += '\n\n... (内容过长，仅显示前5000字符)';
+                }
+                previewArea.appendChild(pre);
+            } else {
+                const div = document.createElement('div');
+                div.style.padding = '20px';
+                div.style.textAlign = 'center';
+                div.style.color = '#666';
+                div.textContent = `二进制文件 (${fileType.ext}) - 无法预览，请下载后查看`;
+                previewArea.appendChild(div);
+            }
+        }
+
+        async function decrypt() {
+            const key = document.getElementById('key').value.trim();
+            if (!key) {
+                showError('请输入解密密钥');
+                return;
+            }
+
+            const keyType = document.getElementById('key-type').value;
+            const activeTab = document.querySelector('.tab-content.active').id;
+            let data;
+
+            try {
+                if (activeTab === 'hex-tab') {
+                    const hexInput = document.getElementById('hex-input').value.trim();
+                    if (!hexInput) {
+                        showError('请输入十六进制数据');
+                        return;
+                    }
+                    data = hexToBytes(hexInput);
+                } else if (activeTab === 'plain-tab') {
+                    const plainInput = document.getElementById('plain-input').value.trim();
+                    if (!plainInput) {
+                        showError('请输入Plain Text数据');
+                        return;
+                    }
+                    data = plainTextToBytes(plainInput);
+                } else if (activeTab === 'base64-tab') {
+                    const base64Input = document.getElementById('base64-input').value.trim();
+                    if (!base64Input) {
+                        showError('请输入Base64数据');
+                        return;
+                    }
+                    data = base64ToBytes(base64Input);
+                } else if (activeTab === 'binary-tab') {
+                    const binaryInput = document.getElementById('binary-input').value.trim();
+                    if (!binaryInput) {
+                        showError('请输入Binary数据');
+                        return;
+                    }
+                    data = binaryToBytes(binaryInput);
+                } else if (activeTab === 'file-tab') {
+                    const fileInput = document.getElementById('file-input');
+                    if (!fileInput.files.length) {
+                        showError('请选择要解密的文件');
+                        return;
+                    }
+                    const file = fileInput.files[0];
+                    const fileFormat = document.getElementById('file-format').value;
+                    
+                    if (fileFormat === 'binary') {
+                        data = new Uint8Array(await file.arrayBuffer());
+                    } else {
+                        const text = await file.text();
+                        if (fileFormat === 'hex') {
+                            data = hexToBytes(text);
+                        } else if (fileFormat === 'plain') {
+                            data = plainTextToBytes(text);
+                        } else if (fileFormat === 'base64') {
+                            data = base64ToBytes(text);
+                        } else if (fileFormat === 'binary-string') {
+                            data = binaryToBytes(text);
+                        }
+                    }
+                }
+
+                decryptedData = xorDecrypt(data, key, keyType);
+                const fileType = detectFileType(decryptedData);
+                decryptedFilename = `decrypted.${fileType.ext}`;
+
+                document.getElementById('result-info').textContent = 
+                    `文件大小: ${decryptedData.length} 字节 | 文件类型: ${fileType.type}`;
+
+                previewData(decryptedData, fileType);
+                document.getElementById('result-section').classList.add('show');
+                showSuccess('解密成功！');
+
+            } catch (error) {
+                showError('解密失败: ' + error.message);
+                document.getElementById('result-section').classList.remove('show');
+            }
+        }
+
+        function saveFile() {
+            if (!decryptedData) {
+                showError('没有可保存的解密数据');
+                return;
+            }
+
+            const blob = new Blob([decryptedData], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = decryptedFilename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showSuccess('文件已保存');
+        }
+
+        function clearAll() {
+            document.getElementById('hex-input').value = '';
+            document.getElementById('plain-input').value = '';
+            document.getElementById('base64-input').value = '';
+            document.getElementById('binary-input').value = '';
+            document.getElementById('file-input').value = '';
+            document.getElementById('file-info').style.display = 'none';
+            document.getElementById('result-section').classList.remove('show');
+            document.getElementById('error').classList.remove('show');
+            document.getElementById('success').classList.remove('show');
+            decryptedData = null;
+        }
+
+        document.getElementById('file-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const fileInfo = document.getElementById('file-info');
+                fileInfo.style.display = 'block';
+                fileInfo.textContent = `文件名: ${file.name} | 大小: ${file.size} 字节 | 类型: ${file.type || '未知'}`;
+            }
+        });
+    </script>
+</body>
+</html>
