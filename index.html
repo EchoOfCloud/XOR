@@ -387,7 +387,7 @@
             <div id="hex-tab" class="tab-content active">
                 <div class="form-group">
                     <label for="hex-input">十六进制数据</label>
-                    <textarea id="hex-input" placeholder="输入十六进制编码的加密数据，例如：b8e8b8eb53327539..."></textarea>
+                    <textarea id="hex-input" placeholder="输入十六进制编码的加密数据，例如：b8e8b8eb53327539...">a19ce5d8ecff918cdbd4dacb2a36229c96938be8b6a287f694f086</textarea>
                 </div>
             </div>
 
@@ -459,7 +459,7 @@
                 <p>系统采用纯前端技术实现，数据完全在浏览器本地处理，无需服务器支持，安全快捷。</p>
                 <p class="about-author">作者：EchoOfCloud</p>
                 <div class="about-links">
-                    <a href="https://github.com/EchoOfCloud" target="_blank" class="about-link">GitHub地址</a>
+                    <a href="https://github.com/EchoOfCloud/XOR" target="_blank" class="about-link">GitHub地址</a>
                     <a href="https://blog.csdn.net/qq_37400312" target="_blank" class="about-link">CSDN地址</a>
                 </div>
             </div>
@@ -624,7 +624,15 @@
             const textDecoder = new TextDecoder('utf-8', { fatal: false });
             try {
                 const text = textDecoder.decode(data.slice(0, Math.min(100, data.length)));
-                if (/^[\x20-\x7E\r\n\t]*$/.test(text)) {
+                let isText = true;
+                for (let i = 0; i < text.length; i++) {
+                    const code = text.charCodeAt(i);
+                    if (code < 0x20 && code !== 0x09 && code !== 0x0A && code !== 0x0D) {
+                        isText = false;
+                        break;
+                    }
+                }
+                if (isText && text.length > 0) {
                     return { type: 'text/plain', ext: 'txt' };
                 }
             } catch (e) {}
