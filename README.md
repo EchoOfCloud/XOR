@@ -20,6 +20,10 @@
 
 ## 使用方法
 
+### 在线访问
+
+项目在线地址：https://xor.bbd0e568.er.aliyun-esa.net/
+
 ### 1. 打开工具
 
 直接在浏览器中打开 `index.html` 文件即可使用。
